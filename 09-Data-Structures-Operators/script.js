@@ -303,7 +303,7 @@ for (const item of menuFull) console.log(item);
 for (const item of menuFull.entries()) console.log(item); // enumerate z pythona
 for (const [index, item] of menuFull.entries()) console.log(index, item);
 
-*/
+
 
 // ############################ Enhanced object literals
 
@@ -348,3 +348,98 @@ const restaurant2 = {
 
 console.log(restaurant2);
 console.log(restaurant2.order(2, 0));
+
+
+
+// ############################ Optional chaining (?.)
+//print monday (but it does not exist)
+console.log(restaurant.openingHours.mon);
+// console.log(restaurant.openingHours.mon.open);
+
+if (restaurant.openingHours && restaurant.openingHours.mon) console.log(restaurant.openingHours.mon.open);
+
+// With optional chaining
+console.log(restaurant.openingHours?.mon?.open); // Only if monday exists it will be read, otherwise undefined
+
+// Example
+const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+for (const day of weekdays) {
+  console.log(day);
+  const open = restaurant.openingHours[day]?.open ?? 'closed'
+  console.log(`On ${day} we open at ${open}`);
+}
+
+//Methods
+console.log(restaurant.order?.(0,1) ?? 'Method does not exist');
+console.log(restaurant.orderRisotto?.(0,1) ?? 'Method does not exist');
+
+//Arrays
+const users = [
+  {name: 'Jonas', email: 'hello@jonas.io'}
+];
+console.log(users[0]?.name ?? 'User array empty');
+
+
+
+// ############################ Looping objects
+
+const openingHours = restaurant.openingHours
+// Over property names (keys)
+for  (const day of Object.keys(openingHours)) console.log(day);
+const properties = Object.keys(openingHours)
+let openStr = `We are open on ${properties.length} days: `
+for (const day of properties) {
+  openStr += `${day}, `
+}
+console.log(openStr);
+
+//Property values
+const values = Object.values(openingHours)
+console.log(values);
+
+// Entire object
+const entries = Object.entries(openingHours)
+console.log(entries);
+
+// [key, value]
+for (const [key, {open, close}] of entries) {
+  console.log(`On ${key} we open at ${open} and close at ${close}`);
+}
+*/
+
+// ############################ Sets
+// collection of unique values
+const ordersSet = new Set(['Pasta', 'Pizza', 'Pizza', 'Risotto', 'Pasta', 'Pizza'])
+console.log(ordersSet);
+console.log(new Set('Jonas'));
+
+// Get size of set
+console.log(ordersSet.size);
+// Check if element in set
+console.log(ordersSet.has('Pizza'));
+console.log(ordersSet.has('Bread'));
+
+// Add new elements
+ordersSet.add('Garlic Bread')
+ordersSet.add('Garlic Bread')
+console.log(ordersSet);
+
+//Delete element
+ordersSet.delete('Garlic Bread')
+console.log(ordersSet);
+
+// clear set
+// ordersSet.clear()
+
+// Get item from set
+for (const order of ordersSet) console.log(order);
+
+//Example
+//Remove duplicates from arrays
+const staff = ['Waiter', 'Chef', 'Waiter', 'Manager', 'Chef', 'Waiter'];
+const staffUnique = [...new Set(staff)] //create new array from set
+console.log(staffUnique);
+console.log(new Set(staff).size); // just get count of unique positions
+
+//counting letters
+console.log(new Set('MarcinGoszczynski').size);
