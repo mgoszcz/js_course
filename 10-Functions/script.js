@@ -67,7 +67,7 @@ const abc = function (passenger) {
 
 abc(marcin);
 console.log(marcin);
-*/
+
 
 // ###################### First class and higher-order functions
 // first class functions
@@ -128,3 +128,106 @@ greeterHey('Steven');
 
 greet('Hello')('Marcin');
 greetArrow('Hi')('Marcin');
+*/
+
+// ###################### call and apply methods
+
+const lufthansa = {
+  airline: 'lufthansa',
+  iataCode: 'LH',
+  bookings: [],
+  book(flightNum, name) {
+    console.log(
+      `${name} booked a seat on ${this.airline} flight ${this.iataCode}${flightNum}`
+    );
+    this.bookings.push({ flight: `${this.iataCode}${flightNum}`, name });
+  },
+};
+
+lufthansa.book(239, 'Marcin Goszczynski');
+lufthansa.book(256, 'John Smith');
+console.log(lufthansa);
+
+const eurowings = {
+  airline: 'eurowings',
+  iataCode: 'EW',
+  bookings: [],
+};
+
+const book = lufthansa.book;
+
+// book(23, 'Sarah Wiliams'); //will throw an error as it is now regular function so 'this' will be undefined
+
+// Call method
+book.call(eurowings, 23, 'Sarah Wiliams'); // Tell method with which object it should be executed (what is 'this' in this call)
+console.log(eurowings);
+
+book.call(lufthansa, 239, 'Mary Cooper');
+console.log(lufthansa);
+
+const swiss = {
+  airline: 'Swiss Airlines',
+  iataCode: 'LX',
+  bookings: [],
+};
+
+book.call(swiss, 583, 'Mary Cooper');
+console.log(swiss);
+
+// Apply method - not used any more
+const flightData = [583, 'George Cooper'];
+book.apply(swiss, flightData); // similar to 'call' but instead passing parameters it requires array of parameters
+console.log(swiss);
+
+book.call(swiss, ...flightData); // The same as apply
+
+// ###################### bind method
+
+// book.call(eurowings, 23, 'Sarah Wiliams');
+
+const bookEW = book.bind(eurowings); //it will not call function but will create new function that will use eurowings as 'this'
+const bookLH = book.bind(lufthansa);
+const bookLX = book.bind(swiss);
+
+bookEW(23, 'Steven Williams');
+console.log(eurowings);
+
+const bookEW23 = book.bind(eurowings, 23); // you can also provide function parameters to be bound for each future call
+bookEW23('Jonas Schmedtmann');
+bookEW23('Martha Cooper');
+console.log(eurowings);
+
+// With Events Listeners
+lufthansa.planes = 300;
+lufthansa.buyPlane = function () {
+  console.log(this);
+  this.planes++;
+  console.log(this.planes);
+};
+
+// Wikl not work!
+// Now 'this' keyword will be for button (in event handling methods 'this' always points to object that handler function is attached to)
+// document.querySelector('.buy').addEventListener('click', lufthansa.buyPlane);
+
+// Needs to create new method with 'this' defined correctly - use bind
+document
+  .querySelector('.buy')
+  .addEventListener('click', lufthansa.buyPlane.bind(lufthansa));
+
+// Partial application
+//preset parameters
+
+const addTax = (rate, value) => value + value * rate; // general function for adding tax
+console.log(addTax(0.1, 200));
+
+const addVAT = addTax.bind(null, 0.23); // new specific function to calc VAT created from general function, predefined rate 0.23, 'null' is before we do nto need 'this' keyword
+console.log(addVAT(100));
+
+// const addVAT2 = value => addTax(0.23, value);
+const addTaxRate = function (rate) {
+  return function (value) {
+    return value + value * rate;
+  };
+};
+const addVAT2 = addTaxRate(0.23);
+console.log(addVAT2(100));
