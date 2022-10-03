@@ -128,7 +128,7 @@ greeterHey('Steven');
 
 greet('Hello')('Marcin');
 greetArrow('Hi')('Marcin');
-*/
+
 
 // ###################### call and apply methods
 
@@ -231,3 +231,26 @@ const addTaxRate = function (rate) {
 };
 const addVAT2 = addTaxRate(0.23);
 console.log(addVAT2(100));
+*/
+
+// ###################### Immediately Invoked Function Expressions (IIFE)
+
+const runOnce = function () {
+  console.log('This will never run again - not true here :)');
+};
+runOnce();
+
+// by putting everything inside parenthesis we trick JS, then for JS it looks like an expression
+// we transform statement to expression, then add () to call it
+(function () {
+  console.log('This will never run again - now it is true');
+  const isPrivate = 23; // It is encapsulated here and cannot be accessed anywhere
+})();
+
+// similar to arrow functions
+(() => console.log('This will also never run again'))();
+
+// As in modern JS we can declare it within a block so it is not needed to create function for that
+{
+  const isPrivate = 23; // it also cannot be accessed outside block {}
+}
