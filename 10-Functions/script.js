@@ -231,7 +231,7 @@ const addTaxRate = function (rate) {
 };
 const addVAT2 = addTaxRate(0.23);
 console.log(addVAT2(100));
-*/
+
 
 // ###################### Immediately Invoked Function Expressions (IIFE)
 
@@ -254,3 +254,70 @@ runOnce();
 {
   const isPrivate = 23; // it also cannot be accessed outside block {}
 }
+*/
+
+// ###################### Closures
+
+const secureBooking = function () {
+  let passengerCount = 0;
+
+  return function () {
+    passengerCount++;
+    console.log(`${passengerCount} passengers`);
+  };
+};
+
+const booker = secureBooking();
+
+booker();
+booker();
+booker();
+
+// secureBookign execution context with variable environemtn is removed from stack after line 270
+// when invoking booker later it's scope chain does not have an access to secureBooking scope and
+// it does not have any variables defined but it can still increment passengerCount
+// It is because there is a closure. Closure allows functions to access variable environment from
+// execution context in which function was declared even when execution context has gone (function returned).
+// Closure has higher priority than scope chain.
+
+console.dir(booker); //you can find there a closure within 'Scopes' [[]] - means it is internal property not accessible
+
+// Closure can be defined even without returning function
+let f;
+
+const g = function () {
+  const a = 23;
+  f = function () {
+    console.log(a * 2);
+  };
+};
+
+const h = function () {
+  const b = 77;
+  f = function () {
+    console.log(b * 2);
+  };
+};
+
+g();
+f(); // there is a closure even when f was not declared inside g function
+// Re-assigning f function
+h();
+f(); // after reassigning it closed over variable environment from h replacing closure from g
+
+// Another example
+const boardPassengers = function (n, wait) {
+  const perGroup = n / 3;
+
+  setTimeout(function () {
+    console.log(`We are now boarding all ${n} passengers`);
+    console.log(`There are 3 groups, each with ${perGroup} passengers`);
+  }, wait * 1000); // execute function after 1 second
+
+  console.log(`Will start boarding in ${wait} seconds`);
+};
+
+const perGroup = 1000; //proving that closure has higher priority than scope chain, this variable in global scope will nto affect one in timer
+boardPassengers(180, 3);
+// Callback function from timer was executed independently from boardPassengers execution context
+// but it still has access to variables - closure
