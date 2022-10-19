@@ -61,6 +61,50 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+const displayMovements = function (movements) {
+  // Remove all items from container
+  containerMovements.innerHTML = '';
+
+  // add all items to container from input array
+  movements.forEach(function (movement, index) {
+    const movementType = movement > 0 ? 'deposit' : 'withdrawal';
+    const html = `
+    <div class="movements__row">
+        <div class="movements__type movements__type--${movementType}">${
+      index + 1
+    } ${movementType}</div>
+        <div class="movements__value">${movement}€</div>
+    </div>
+    `;
+    containerMovements.insertAdjacentHTML('afterbegin', html);
+  });
+};
+
+displayMovements(account1.movements);
+// console.log(containerMovements.innerHTML);
+
+const createUserNames = function (accounts) {
+  accounts.forEach(function (account) {
+    account.userName = account.owner
+      .toLowerCase()
+      .split(' ')
+      .map(singleName => singleName[0])
+      .join('');
+  });
+};
+
+createUserNames(accounts);
+// console.log(accounts);
+
+const calcDisplayBalance = function (movements) {
+  const balance = movements.reduce(
+    (accumulator, movement) => accumulator + movement,
+    0
+  );
+  labelBalance.textContent = `${balance}€`;
+};
+calcDisplayBalance(account1.movements);
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -162,4 +206,60 @@ console.log(currenciesUnique);
 currenciesUnique.forEach(function (value, valueAgain, set) {
   console.log(`${valueAgain}: ${value}`);
 });
+
+
+
+// MAP method - create new array with each element modified by callback function
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+//convert movements in EUr to USD
+const eurToUsd = 1.1;
+
+const movementsUsd = movements.map(function (currentElement) {
+  return currentElement * eurToUsd;
+});
+const movementsUsdArrow = movements.map(
+  currentElement => currentElement * eurToUsd
+);
+console.log(movements);
+console.log(movementsUsd);
+console.log(movementsUsdArrow);
+
+
+// FILTER method - create new array with elements filtered out from original array
+//
+
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const deposits = movements.filter(function (movement) {
+  // callback function should return bool
+  return movement > 0;
+});
+
+const withdrawals = movements.filter(movement => movement < 0);
+console.log(deposits);
+console.log(withdrawals);
 */
+
+// REDUCE method - boil down all elements in array to one single value
+
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+// first parameter in callback is an accumulator of previous elements
+// second paramtere in reduce is initial value
+const balance = movements.reduce(function (accumulator, currentElement) {
+  return accumulator + currentElement;
+}, 0);
+const balanceArrow = movements.reduce(
+  (accumulator, currentValue) => accumulator + currentValue,
+  0
+);
+console.log(balance);
+console.log(balanceArrow);
+
+// Maximum value
+const maxValue = movements.reduce(
+  (accumulator, currentValue) =>
+    currentValue > accumulator ? currentValue : accumulator,
+  movements[0]
+);
+console.log(maxValue);
