@@ -105,6 +105,24 @@ const calcDisplayBalance = function (movements) {
 };
 calcDisplayBalance(account1.movements);
 
+const calcDisplaySummary = function (movements) {
+  const incomes = movements
+    .filter(movement => movement > 0)
+    .reduce((acc, movement) => acc + movement, 0);
+  labelSumIn.textContent = `${incomes}€`;
+  const withdrawals = movements
+    .filter(movement => movement < 0)
+    .reduce((acc, movement) => acc + movement, 0);
+  labelSumOut.textContent = `${Math.abs(withdrawals)}€`;
+  const interest = movements
+    .filter(movement => movement > 0)
+    .map(movement => (movement * 1.2) / 100)
+    .filter(interests => interests >= 1) // interest must be higher than 1 eur to be paid
+    .reduce((acc, movement) => acc + movement, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
+calcDisplaySummary(account1.movements);
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -238,7 +256,7 @@ const deposits = movements.filter(function (movement) {
 const withdrawals = movements.filter(movement => movement < 0);
 console.log(deposits);
 console.log(withdrawals);
-*/
+
 
 // REDUCE method - boil down all elements in array to one single value
 
@@ -263,3 +281,35 @@ const maxValue = movements.reduce(
   movements[0]
 );
 console.log(maxValue);
+
+
+// CHAINING METHODS
+
+// take all of deposites and convert to USD and sum
+// map and filter will return array so we can again call array methods on that
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const eurToUsd = 1.1;
+const totalDepositsUSD = movements
+  .filter(movement => movement > 0)
+  // .map((movement, i, array) => {
+  //   //debugging, we can inspect current array at any level of chaining
+  //   console.log(array);
+  //   movement * eurToUsd;
+  // })
+  .map(movement => movement * eurToUsd)
+  .reduce((accumulator, movement) => accumulator + movement, 0);
+console.log(totalDepositsUSD);
+
+*/
+
+// FIND method - find item in array
+
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// will return first element in array
+const firstWithdrawal = movements.find(movement => movement < 0);
+console.log(firstWithdrawal);
+
+console.log(accounts);
+
+const account = accounts.find(account => account.owner === 'Jessica Davis');
+console.log(account);
