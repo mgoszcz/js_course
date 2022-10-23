@@ -61,12 +61,14 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovements = function (movements) {
+const displayMovements = function (movements, sort = false) {
   // Remove all items from container
   containerMovements.innerHTML = '';
 
+  // sort on a copy of movements to not change movements inside account object
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
   // add all items to container from input array
-  movements.forEach(function (movement, index) {
+  movs.forEach(function (movement, index) {
     const movementType = movement > 0 ? 'deposit' : 'withdrawal';
     const html = `
     <div class="movements__row">
@@ -80,7 +82,6 @@ const displayMovements = function (movements) {
   });
 };
 
-displayMovements(account1.movements);
 // console.log(containerMovements.innerHTML);
 
 const createUserNames = function (accounts) {
@@ -96,33 +97,119 @@ const createUserNames = function (accounts) {
 createUserNames(accounts);
 // console.log(accounts);
 
-const calcDisplayBalance = function (movements) {
-  const balance = movements.reduce(
+const calcDisplayBalance = function (account) {
+  const balance = account.movements.reduce(
     (accumulator, movement) => accumulator + movement,
     0
   );
+  account.balance = balance;
   labelBalance.textContent = `${balance}€`;
 };
-calcDisplayBalance(account1.movements);
 
-const calcDisplaySummary = function (movements) {
-  const incomes = movements
+const calcDisplaySummary = function (account) {
+  const incomes = account.movements
     .filter(movement => movement > 0)
     .reduce((acc, movement) => acc + movement, 0);
   labelSumIn.textContent = `${incomes}€`;
-  const withdrawals = movements
+  const withdrawals = account.movements
     .filter(movement => movement < 0)
     .reduce((acc, movement) => acc + movement, 0);
   labelSumOut.textContent = `${Math.abs(withdrawals)}€`;
-  const interest = movements
+  const interest = account.movements
     .filter(movement => movement > 0)
-    .map(movement => (movement * 1.2) / 100)
+    .map(movement => (movement * currentAccount.interestRate) / 100)
     .filter(interests => interests >= 1) // interest must be higher than 1 eur to be paid
     .reduce((acc, movement) => acc + movement, 0);
   labelSumInterest.textContent = `${interest}€`;
 };
-calcDisplaySummary(account1.movements);
 
+// Events Handlers
+let currentAccount;
+
+const updateUI = function () {
+  // Display and calculate balance
+  calcDisplayBalance(currentAccount);
+  // calculate and display summary
+  calcDisplaySummary(currentAccount);
+  // Calculate and display movements
+  displayMovements(currentAccount.movements);
+};
+
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault(); //button inside 'form' class always refreshes page (submit), here we disable it
+  currentAccount = accounts.find(
+    acc => acc.userName === inputLoginUsername.value
+  );
+  console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // Display UI and welcome messgae
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = 100;
+    // Clear input fields
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur(); // remove focus from pin
+    inputLoginUsername.blur(); // remove focus from user name
+    updateUI();
+  }
+});
+
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAccount = accounts.find(
+    acc => acc.userName === inputTransferTo.value
+  );
+  if (
+    amount > 0 &&
+    receiverAccount &&
+    amount <= currentAccount.balance &&
+    receiverAccount.userName !== currentAccount.userName
+  ) {
+    currentAccount.movements.push(amount * -1);
+    receiverAccount.movements.push(amount);
+    updateUI();
+  }
+  inputTransferAmount.value = inputTransferTo.value = '';
+});
+
+btnLoan.addEventListener('click', function (e) {
+  // Loan can be requested only if there is at least one deposit greater than 10% of request
+  e.preventDefault();
+  const loanAmount = Number(inputLoanAmount.value);
+  if (
+    loanAmount > 0 &&
+    currentAccount.movements.some(mov => mov > loanAmount * 0.1)
+  ) {
+    currentAccount.movements.push(loanAmount);
+    updateUI();
+  }
+  inputLoanAmount.value = '';
+});
+
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  const userName = inputCloseUsername.value;
+  const userPin = Number(inputClosePin.value);
+  if (userName === currentAccount.userName && userPin === currentAccount.pin) {
+    const accountIndex = accounts.findIndex(acc => acc === currentAccount);
+    console.log(accountIndex);
+    accounts.splice(accountIndex, 1);
+    inputClosePin.value = '';
+    inputCloseUsername.value = '';
+    containerApp.style.opacity = 0;
+    labelWelcome.textContent = 'Log in to get started';
+  }
+});
+
+let isSorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !isSorted);
+  isSorted = !isSorted;
+});
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -300,7 +387,7 @@ const totalDepositsUSD = movements
   .reduce((accumulator, movement) => accumulator + movement, 0);
 console.log(totalDepositsUSD);
 
-*/
+
 
 // FIND method - find item in array
 
@@ -313,3 +400,208 @@ console.log(accounts);
 
 const account = accounts.find(account => account.owner === 'Jessica Davis');
 console.log(account);
+
+// findIndex method - returns first index of found element defined by callback function
+
+
+
+// some and every METHODS
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+console.log(movements.includes(-130)); // returns true if any value in array is equal to -130
+
+// SOME
+// check if there is any positive value in array
+const anyDeposits = movements.some(mov => mov > 0);
+console.log(anyDeposits);
+
+// check if there is any deposit above 5000 value in array
+const anyDeposits5000 = movements.some(mov => mov > 5000);
+console.log(anyDeposits5000);
+
+// EVERY
+// only returns true if all elements in array satisfies condition
+console.log(movements.every(mov => mov > 0));
+console.log(movements.every(mov => mov !== 0));
+
+// Separate callback
+const deposit = mov => mov > 0;
+console.log(movements.some(deposit));
+console.log(movements.every(deposit));
+console.log(movements.filter(deposit));
+
+
+
+// flat and flatMap methods
+
+const arr = [[1, 2, 3], [4, 5, 6], 7, 8];
+const arrDeep = [[1, 2, 3], [4, [4, 5], 5, 6], 7, 8];
+console.log(arr);
+console.log(arr.flat());
+console.log(arr.flat(2)); // second level of nesting
+console.log(arrDeep);
+console.log(arrDeep.flat());
+console.log(arrDeep.flat(2)); // second level of nesting
+
+// flat
+// get array of all movements
+const accountMovements = accounts.map(acc => acc.movements);
+console.log(accountMovements);
+const allMovements = accountMovements.flat();
+console.log(allMovements);
+// const overallBalance = allMovements.reduce((acc, mov) => acc + mov, 0);
+const overallBalance = accounts
+  .map(acc => acc.movements)
+  .flat()
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(overallBalance);
+
+// flatMap - flat and map together
+// flatMap is always 1 level deep
+const overallBalance2 = accounts
+  .flatMap(acc => acc.movements)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(overallBalance2);
+
+
+
+// Sorting arrays
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// Strings
+const owners = ['Jonas', 'Zach', 'Adam', 'Martha'];
+console.log(owners.sort()); // MUTATES orignal array!
+console.log(owners);
+
+// Numbers
+
+console.log(movements);
+// return < 0 then a will be before b (keep order)
+// return > 0 then b will be before a (switch order)
+
+// sort ascending by numbers
+// sort will go thtrough all items until all return < 0
+// Ascending
+movements.sort((a, b) => {
+  if (a > b) return 1;
+  if (b > a) return -1;
+});
+console.log(movements);
+
+//Descending
+movements.sort((a, b) => {
+  if (a > b) return -1;
+  if (b > a) return 1;
+});
+console.log(movements);
+
+// IMPROVED
+movements.sort((a, b) => a - b);
+console.log(movements);
+
+movements.sort((a, b) => b - a);
+console.log(movements);
+
+
+
+// Create and fill arrays programatically
+
+const arr = [1, 2, 3, 4, 5, 6, 7];
+console.log(new Array(1, 2, 3, 4, 5, 6, 7));
+
+// Empty arrays + fill method
+const x = new Array(7); // creates new array with 7 empty elements
+console.log(x);
+console.log(x.map(() => 5)); // does not work
+
+// x.fill(1); // fill entire array with 1
+// x.fill(1, 3); // begin parameter
+x.fill(1, 3, 5); // begin and end parameter
+console.log(x);
+
+arr.fill(23, 2, 6);
+console.log(arr);
+
+// cretae array 1,2,3,4,5,6,7
+// Array.from
+const y = Array.from({ length: 7 }, () => 1); // create 1,1,1,1,1,1,1,
+console.log(y);
+// object with length attr as first param and callback to create mapping as second param
+const z = Array.from({ length: 7 }, (_, i) => i + 1); // create 1,2,3,4,5,6,7
+console.log(z);
+
+// Array with 100 random dice rolls
+const dice = Array.from(
+  { length: 100 },
+  () => Math.trunc(Math.random() * 6) + 1
+);
+console.log(dice);
+
+// Example = create array of movements by taking them from UI
+// create array from array like object
+labelBalance.addEventListener('click', function () {
+  const movementsFromUI = Array.from(
+    document.querySelectorAll('.movements__value'),
+    el => Number(el.textContent.replace('€', ''))
+  );
+
+  console.log(movementsFromUI);
+  const movementsUI2 = [...document.querySelectorAll('.movements__value')];
+  console.log(movementsUI2);
+});
+
+*/
+
+// ARRAY METHODS PRACTICE
+
+// 1. calculate all deposits in the bank
+const allDepositSum = accounts
+  .flatMap(acc => acc.movements)
+  .filter(mov => mov > 0)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(allDepositSum);
+
+// 2. count number of deposits with at least 1000 USD
+// const numDeposits1000 = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(mov => mov >= 1000).length;
+
+const numDeposits1000 = accounts
+  .flatMap(acc => acc.movements)
+  .reduce((acc, mov) => (mov >= 1000 ? acc + 1 : acc), 0);
+
+// cannot use .reduce((acc, mov) => (mov >= 1000 ? acc++ : acc), 0) as acc++ will increase but still returns previous value
+// instead you can use ++acc
+
+console.log(numDeposits1000);
+
+// 3. create new object by reduce
+// create an object that contains sum of deposits and withdrawals
+const sums = accounts
+  .flatMap(acc => acc.movements)
+  .reduce(
+    (acc, cur) => {
+      // cur > 0 ? (acc.deposits += cur) : (acc.withdrawals += Math.abs(cur));
+      acc[cur > 0 ? 'deposits' : 'withdrawals'] += Math.abs(cur);
+      return acc;
+    },
+    { deposits: 0, withdrawals: 0 }
+  );
+
+console.log(sums);
+
+// 4. convert any string to title case
+// this is a nice title -> This Is a Nice Title
+const convertTitleCase = function (title) {
+  const exceptions = ['a', 'an', 'the', 'but', 'or', 'on', 'in', 'with', 'and'];
+  const words = title.toLowerCase().split(' ');
+  const resultList = words.map(word => {
+    const newWord = exceptions.includes(word)
+      ? word
+      : word[0].toUpperCase() + word.slice(1);
+    return newWord;
+  });
+  return resultList.join(' ');
+};
+
+console.log(convertTitleCase('this is a nice title'));
+console.log(convertTitleCase('this is a LONG title but not too long'));
+console.log(convertTitleCase('and here is another title with an EXAMPLE'));
