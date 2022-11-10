@@ -145,13 +145,64 @@ nav.addEventListener('mouseout', fadeEffect.bind(1));
 // Sticky navigation
 //// Not a very best solution as scroll event is launched with every scroll
 
-window.addEventListener('scroll', function (e) {
-  const initialCoords = section1.getBoundingClientRect();
-  if (this.window.scrollY > initialCoords.top) nav.classList.add('sticky');
-  else nav.classList.remove('sticky');
-});
+// window.addEventListener('scroll', function (e) {
+//   const initialCoords = section1.getBoundingClientRect();
+//   if (this.window.scrollY > initialCoords.top) nav.classList.add('sticky');
+//   else nav.classList.remove('sticky');
+// });
 
 ////
+// Sticky navigation: Intersection Observer API
+// const obsCallback = function (entries, observer) {
+//   entries.forEach(entry => console.log(entry));
+// };
+// const obsOptions = {
+//   root: null,
+//   // threshold: 0.2, // threshold specifies when callback is launched (we can say it tells how much percent of item we want to be visible to launch callback)
+//   threshold: [0, 0.2], //0 means callback will trigger each time target element moves out of view and enters the view, with array we can specify multiple thresholds
+//   // threshold: 1 // 100% of target must be visible in viewport to trigger callback
+// };
+
+// const observer = new IntersectionObserver(obsCallback, obsOptions);
+// observer.observe(section1); // it will track position of section1 in viewport
+
+// we want navigation menu sticky when header moves out of view completely
+const header = document.querySelector('.header');
+const navHeight = nav.getBoundingClientRect().height;
+
+const stickyNav = function (entries) {
+  const [entry] = entries; // only one threshold so there is only one entry, get it out from array
+  console.log(entry);
+  // isIntersecting means that target is interseting viewport (is visible)
+  if (!entry.isIntersecting) nav.classList.add('sticky');
+  else nav.classList.remove('sticky');
+};
+
+const headerObserver = new IntersectionObserver(stickyNav, {
+  root: null, // it means viewport
+  threshold: 0,
+  rootMargin: `-${navHeight}px`, // specify margin for threshold, in this case it will work before whole target goes out
+});
+headerObserver.observe(header);
+
+/////////////////////////////////////////////
+// Revealing elements on scroll
+// Reveal sections
+const allSections = document.querySelectorAll('.section');
+const sectionReveal = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target); // do not observer when already revealed
+};
+const sectionObserver = new IntersectionObserver(sectionReveal, {
+  root: null,
+  threshold: 0.15,
+});
+allSections.forEach(section => {
+  sectionObserver.observe(section);
+  section.classList.add('section--hidden');
+});
 
 /////////////////////////////////////////////
 /////////////////////////////////////////////
