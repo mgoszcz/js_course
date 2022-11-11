@@ -205,6 +205,98 @@ allSections.forEach(section => {
 });
 
 /////////////////////////////////////////////
+// Lazy loading images
+const imgTargets = document.querySelectorAll('img[data-src]'); // select images with data-src property
+
+const loadImg = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+
+  // Replace src with data-src
+  entry.target.src = entry.target.dataset.src;
+  // entry.target.classList.remove('lazy-img');
+  // we need to wait until image is loaded with removing 'blur'
+  entry.target.addEventListener('load', function () {
+    entry.target.classList.remove('lazy-img');
+  });
+  observer.unobserve(entry.target);
+};
+
+const imgObserver = new IntersectionObserver(loadImg, {
+  root: null,
+  threshold: 0.1,
+});
+imgTargets.forEach(target => imgObserver.observe(target));
+
+/////////////////////////////////////////////
+// Slider component
+const slider = function () {
+  const slides = document.querySelectorAll('.slide');
+  const btnLeft = document.querySelector('.slider__btn--left');
+  const btnRight = document.querySelector('.slider__btn--right');
+  const dotsContainer = document.querySelector('.dots');
+
+  let curSlide = 0;
+
+  const createDots = function () {
+    slides.forEach(function (_, index) {
+      dotsContainer.insertAdjacentHTML(
+        'beforeend',
+        `<button class="dots__dot" data-slide="${index}"></button>`
+      );
+    });
+  };
+
+  createDots();
+  const dots = document.querySelectorAll('.dots__dot');
+
+  const markCurrentDot = function () {
+    dots.forEach(function (dot) {
+      if (Number(dot.dataset.slide) === curSlide)
+        dot.classList.add('dots__dot--active');
+      else dot.classList.remove('dots__dot--active');
+    });
+  };
+
+  const positionSlides = function () {
+    slides.forEach(
+      (slide, index) =>
+        (slide.style.transform = `translateX(${(index - curSlide) * 100}%)`)
+    );
+    markCurrentDot();
+  };
+
+  const nextSlide = function () {
+    curSlide++;
+    if (curSlide === slides.length) curSlide = 0;
+    positionSlides();
+  };
+
+  const prevSlide = function () {
+    curSlide--;
+    if (curSlide === -1) curSlide = slides.length - 1;
+    positionSlides();
+  };
+
+  positionSlides();
+
+  btnRight.addEventListener('click', nextSlide);
+
+  btnLeft.addEventListener('click', prevSlide);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') prevSlide();
+    else if (e.key === 'ArrowRight') nextSlide();
+  });
+
+  dotsContainer.addEventListener('click', function (e) {
+    if (!e.target.classList.contains('dots__dot')) return;
+    curSlide = Number(e.target.dataset.slide);
+    positionSlides();
+  });
+};
+slider();
+/////////////////////////////////////////////
 /////////////////////////////////////////////
 ///////// LECTURES //////////////////////////
 /*
@@ -410,4 +502,21 @@ console.log(h1.parentElement.children);
 });
 
 */
-// ************************************** tabbed component
+// Lifecycle DOM events
+// DOMContentLoaded event - HTML and JS loaded, does not wait for external resources (images nad css)
+document.addEventListener('DOMContentLoaded', function (e) {
+  console.log(e);
+});
+
+// LoadEvent - whole content lodaed (including images and CSS)
+window.addEventListener('load', function (e) {
+  console.log(e);
+});
+
+// beforeunload event - triggered right before user leaves page (e.g. when clicking x)
+// with code below, user will be prompted when closing browser with message 'do you really want to leave this site'
+// window.addEventListener('beforeunload', function (e) {
+//   e.preventDefault();
+//   console.log(e);
+//   e.returnValue = '';
+// });
