@@ -18,6 +18,7 @@ Creating prototypes
 4 OOP principals still valid (abstraction, encapsulation, inheritance, polymorphism)
 */
 
+/*
 // ****************** Constructor functions
 // build an object by using function
 // just usual function the difference is that we call it with 'new'
@@ -193,6 +194,7 @@ arrays does nto inherit this method as it is not attached to a prototype
 
 the same with Number.parseFloat()
 */
+/*
 Person.hey = function () {
   console.log('hey there!');
 };
@@ -231,3 +233,128 @@ const sarah = Object.create(PersonProto);
 sarah.init('Sarah', 1979);
 
 sarah.calcAge();
+*/
+
+// ****************** Inheritance between classes
+// ****************** Constructor functions
+// create student clas sthat will inherit from Person
+const Person = function (firstName, birthYear) {
+  this.firstName = firstName;
+  this.birthYear = birthYear;
+};
+
+Person.prototype.calcAge = function () {
+  console.log(2022 - this.birthYear);
+};
+
+const Student = function (firstName, birthYear, course) {
+  Person.call(this, firstName, birthYear);
+  this.course = course;
+};
+
+// Must be done before adding new methods to prototype
+Student.prototype = Object.create(Person.prototype);
+// At this point Student.prototype is an empty object {} with __proto__ equal to Person.prototype
+// Then we can add methods specific for student to Student.prototype
+// Then when we call them it will look for methods in Student proto, if not found then it will look in Person proto
+console.log(Student.prototype.__proto__ === Person.prototype);
+
+Student.prototype.introduce = function () {
+  console.log(`My name is ${this.firstName} and I study ${this.course}`);
+};
+
+const mike = new Student('Mike', 2000, 'Computer Science');
+console.log(mike);
+mike.introduce();
+mike.calcAge();
+
+// It thinks contructor is Person as we use Object.create above
+console.dir(Student.prototype.constructor);
+Student.prototype.constructor = Student;
+console.dir(Student.prototype.constructor);
+
+console.log(mike instanceof Student);
+console.log(mike instanceof Person);
+
+// ****************** Inheritance between classes
+// ****************** ES6 classes
+
+class PersonCl {
+  constructor(fullName, birthYear) {
+    this.fullName = fullName;
+    this.birthYear = birthYear;
+  }
+
+  // It will be still in prototype not in an object
+  calcAge() {
+    console.log(2022 - this.birthYear);
+  }
+
+  greet() {
+    console.log(`Hey ${this.firstName}`);
+  }
+
+  get age() {
+    return 2022 - this.birthYear;
+  }
+
+  get fullName() {
+    return this._fullName;
+  }
+
+  set fullName(name) {
+    if (name.includes(' ')) this._fullName = name;
+    else alert(`${name} is not a full name`);
+  }
+
+  // static method
+  static hey() {
+    console.log('hey there!');
+  }
+}
+
+class StudentCL extends PersonCl {
+  constructor(fullName, birthYear, course) {
+    // Always needs to happen first as will create 'this'
+    super(fullName, birthYear);
+    this.course = course;
+  }
+
+  introduce() {
+    console.log(`My name is ${this.fullName} and I study ${this.course}`);
+  }
+}
+
+const martha = new StudentCL('Martha Jones', 2002, 'Cuomputer Science');
+martha.introduce();
+martha.calcAge();
+
+// ****************** Inheritance between classes
+// ****************** Object.create()
+const PersonProto = {
+  calcAge() {
+    console.log(2022 - this.birthYear);
+  },
+
+  init(firstName, birthYear) {
+    this.firstName = firstName;
+    this.birthYear = birthYear;
+  },
+};
+
+const steven = Object.create(PersonProto);
+
+const StudentProto = Object.create(PersonProto);
+StudentProto.init = function (firstName, birthYear, course) {
+  PersonProto.init.call(this, firstName, birthYear);
+  this.course = course;
+};
+StudentProto.introduce = function () {
+  console.log(`My name is ${this.firstName} and I study ${this.course}`);
+};
+
+const jay = Object.create(StudentProto);
+
+jay.init('Jay', 1990, 'Computer Science');
+jay.introduce();
+jay.calcAge();
