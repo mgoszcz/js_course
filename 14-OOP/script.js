@@ -233,7 +233,7 @@ const sarah = Object.create(PersonProto);
 sarah.init('Sarah', 1979);
 
 sarah.calcAge();
-*/
+
 
 // ****************** Inheritance between classes
 // ****************** Constructor functions
@@ -358,3 +358,92 @@ const jay = Object.create(StudentProto);
 jay.init('Jay', 1990, 'Computer Science');
 jay.introduce();
 jay.calcAge();
+
+*/
+
+// ****************** Encapsulation
+// Protected and private properties and methods
+
+// Class fields
+// 1. Public fields
+// 2. Private fields
+// 3. Public methods
+// 4. Private methods
+// there is also the static version
+
+class Account {
+  // 1. public fields (on instances, not prototype)
+  locale = navigator.language;
+
+  // 2. Private fields (on instances, not prototype)
+  #movements = [];
+  #pin;
+
+  constructor(owner, currency, pin) {
+    this.owner = owner;
+    this.currency = currency;
+    // protected property, still accessible outside
+    // this._pin = pin;
+    // this._movements = [];
+    // Private field must be declared outside of cinstructor but value can be set then in constructor
+    this.#pin = pin;
+
+    console.log(`Thanks for opening account ${owner}`);
+  }
+
+  // 3. Public interface
+  getMovements() {
+    return this.#movements;
+  }
+
+  deposit(value) {
+    this.#movements.push(value);
+    return this;
+  }
+
+  withdraw(value) {
+    this.deposit(-value);
+    return this;
+  }
+
+  // Protected methos, still accessible outside
+  // _approveLoan(value) {
+  //   return true;
+  // }
+
+  requestLoan(value) {
+    if (this.#approveLoan(value)) {
+      this.deposit(value);
+      console.log('Loan approved');
+    }
+    return this;
+  }
+
+  //4. Private methods
+  #approveLoan(value) {
+    return true;
+  }
+}
+
+const acc1 = new Account('Marcin', 'EUR', 1111);
+console.log(acc1);
+
+// acc1.movements.push(250);
+// acc1.movements.push(-100);
+// instead of interacting with parameters it is better to create methods
+acc1.deposit(250);
+acc1.withdraw(100);
+console.log(acc1);
+console.log(acc1.getMovements());
+
+acc1.requestLoan(1000);
+console.log(acc1);
+// Will raise an error, cannot access private field and methods from outside
+// console.log(acc1.#movements);
+// acc1.#approveLoan(1000);
+
+// ****************** Chaining methods
+acc1.deposit(300).deposit(200).withdraw(35).requestLoan(25000).withdraw(4000);
+// Need to add return this to methods
+// simply method should return objects
+console.log(acc1.getMovements);
