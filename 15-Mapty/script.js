@@ -11,6 +11,7 @@ const inputElevation = document.querySelector('.form__input--elevation');
 class Workout {
   date = new Date();
   id = (Date.now() + '').slice(-10);
+  clicks = 0;
 
   constructor(coords, distance, duration) {
     this.coords = coords;
@@ -25,6 +26,10 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
+  }
+
+  click() {
+    this.clicks++;
   }
 }
 
@@ -62,12 +67,17 @@ class App {
   #workouts = [];
   #map;
   #mapEvent;
+  #mapZoomLevel = 13;
 
   constructor() {
+    // Get user's positions
     this._getPosition();
+    // Get data from local storage
+    this._getLocalStorage();
     // When calling callback it is treated as function call so 'this' will be undefined, need to bind it
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
+    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
   _getPosition() {
@@ -92,7 +102,7 @@ class App {
     //For dislaying map we use Leaflet, 'L' is namespace of it (global variable)
 
     // First setView argument (array) is position and second is zoom
-    this.#map = L.map('map').setView(coords, 13);
+    this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
     // console.log(map);
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -102,6 +112,9 @@ class App {
 
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
+    this.#workouts.forEach(work => {
+      this._renderWorkoutMarker(work);
+    });
   }
   _showForm(event) {
     this.#mapEvent = event;
@@ -173,7 +186,8 @@ class App {
     // Hide form + Clear input fields
     this._hideForm();
 
-    //Display marker
+    // Set local storage to all workouts
+    this._setLocalStorage();
   }
 
   _renderWorkoutMarker(workout) {
@@ -245,6 +259,54 @@ class App {
     // Insert workout as sibling of form (to be exactly after form but before other workouts)
     form.insertAdjacentHTML('afterend', html);
   }
+
+  _moveToPopup(event) {
+    const workoutEl = event.target.closest('.workout');
+
+    if (!workoutEl) return;
+    const workout = this.#workouts.find(
+      work => work.id === workoutEl.dataset.id
+    );
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: {
+        duration: 1,
+      },
+    });
+  }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+
+    if (!data) return;
+
+    this.#workouts = data;
+
+    this.#workouts.forEach(work => {
+      this._renderWorkout(work);
+    });
+
+    //With local storage, we will loose methods in prototype
+  }
+
+  reset() {
+    localStorage.removeItem('workouts');
+    location.reload();
+  }
 }
 
 const app = new App();
+
+// FUTURE
+// Edit a workout
+// Remove a workout
+// Remove all workouts
+// Sort workouts (e.g. by distance)
+// re-build Cycling and Running objects from storage
+// show all workouts on map
+// Geocode location from coords ('Run in Faro, Portugal)
+// Wether data for workout time and place
