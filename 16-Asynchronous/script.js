@@ -170,7 +170,7 @@ const getCountryData = function (country) {
     .then(data => renderCountry(data, 'neighbour'));
 };
 getCountryData('poland');
-*/
+
 // *********************** Handling rejected promises
 
 const getCountryData = function (country) {
@@ -195,6 +195,49 @@ const getCountryData = function (country) {
       //   fetch(`https://restcountries.com/v2/alpha/${neighbour}`).then(response => response.json());
     })
     .then(response => response.json())
+    .then(data => renderCountry(data, 'neighbour'))
+    .catch(err => {
+      console.error(`${err} 😵`); // it will catch any error that occur in any place in promise chain
+      renderError(`Something went wrong 😵 ${err.message}. Try again...`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
+};
+
+btn.addEventListener('click', function () {
+  getCountryData('poland');
+});
+*/
+// *********************** Throwing errors manually
+
+const getJSON = function (url, errorMsg = 'Something went wrong') {
+  // it will return promise
+  return fetch(url).then(response => {
+    // Use 'ok' property and use it to throw an error if it is false
+    if (!response.ok) {
+      throw new Error(`${errorMsg} ${response.status}`);
+    }
+    return response.json();
+  });
+};
+
+const getCountryData = function (country) {
+  getJSON(`https://restcountries.com/v2/name/${country}`, 'Country not found')
+    .then(data => {
+      renderCountry(data[0]);
+      const neighbour = data[0].borders?.[0];
+      if (!neighbour) throw new Error('No neighbour found');
+
+      //Country 2
+      // This return is a fulfilled value of this promise
+      return getJSON(
+        `https://restcountries.com/v2/alpha/${neighbour}`,
+        'Country not found'
+      );
+      // DON'T DO THIS - callback hell again
+      //   fetch(`https://restcountries.com/v2/alpha/${neighbour}`).then(response => response.json());
+    })
     .then(data => renderCountry(data, 'neighbour'))
     .catch(err => {
       console.error(`${err} 😵`); // it will catch any error that occur in any place in promise chain
