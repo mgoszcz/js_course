@@ -208,9 +208,9 @@ const getCountryData = function (country) {
 btn.addEventListener('click', function () {
   getCountryData('poland');
 });
-*/
-// *********************** Throwing errors manually
 
+// *********************** Throwing errors manually
+*/
 const getJSON = function (url, errorMsg = 'Something went wrong') {
   // it will return promise
   return fetch(url).then(response => {
@@ -247,7 +247,153 @@ const getCountryData = function (country) {
       countriesContainer.style.opacity = 1;
     });
 };
-
+/*
 btn.addEventListener('click', function () {
   getCountryData('poland');
+});
+
+// *********************** Event loop in practice
+// callstack first (test start and test finished)
+// promise callback second (it goes into microtasks queue that has higher priority than callback queue)
+// timeout callback last as it goes to callback queue
+
+// Timeout callback will be delayed as second promise callback takes some time
+// It is important!! timer assures that callback will be not executed BEFORE timeout value
+// but it does not guerantee that it will be exrecuted RIGHT AFTER timeout value
+/*
+console.log('Test start');
+setTimeout(() => console.log('0 sec timer'), 0);
+Promise.resolve('Resolved promise1').then(res => console.log(res));
+Promise.resolve('Resolved promise 2').then(res => {
+  // Simulate delay
+  for (let i = 0; i < 1000000000; i++) {}
+  console.log(res);
+});
+console.log('Test finished');
+
+
+// *********************** Building promises
+const lotteryPromise = new Promise(function (resolve, reject) {
+  console.log('Lottery draw in progress...');
+
+  setTimeout(function () {
+    if (Math.random() >= 0.5) {
+      // fulfilled
+      resolve('You WIN');
+    } else {
+      // rejected
+      reject(new Error('You lost your money'));
+    }
+  }, 2000);
+});
+
+// Promisifying - convert callback based to microtask (promise)
+lotteryPromise.then(res => console.log(res)).catch(err => console.log(err));
+
+// Promisifying setTimeout
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+wait(2).then(() => console.log('I have waited for 2 seconds'));
+
+wait(1)
+  .then(() => {
+    console.log('1 second passed');
+    return wait(1);
+  })
+  .then(() => {
+    console.log('2 seconds passed');
+    return wait(1);
+  })
+  .then(() => {
+    console.log('3 seconds passed');
+    return wait(1);
+  })
+  .then(() => {
+    console.log('4 seconds passed');
+  });
+
+// Above solution is better than below (callback hell)
+// setTimeout(() => {
+//   console.log('1 second passed');
+//   setTimeout(() => {
+//     console.log('2 seconds passed');
+//     setTimeout(() => {
+//       console.log('3 seconds passed');
+//       setTimeout(() => {
+//         console.log('4 seconds passed');
+//       }, 1000);
+//     }, 1000);
+//   }, 1000);
+// }, 1000);
+
+// Create a fulfilled or rejected promise immediatelly
+// To create microtask immediatelly
+Promise.resolve('abc').then(x => console.log(x));
+Promise.reject('abc').catch(x => console.error(x));
+
+*/
+
+// *********************** Geolocation API
+// navigator.geolocation.getCurrentPosition(
+//   position => console.log(position),
+//   error => console.error(error)
+// );
+
+const whereAmI = function () {
+  getPosition()
+    .then(pos => {
+      console.log(pos);
+      const { latitude, longitude } = pos.coords;
+      console.log(latitude, longitude);
+      return getJSON(
+        `https://geocode.xyz/${latitude},${longitude}?geoit=json`,
+        'Geocode failed'
+      );
+    })
+    .then(resp => {
+      console.log(resp);
+      console.log(`You are in ${resp.city}, ${resp.country}`);
+      return getJSON(
+        `https://restcountries.com/v2/name/${resp.country}`,
+        'Country not found'
+      );
+    })
+    .then(resp => {
+      renderCountry(resp[0]);
+      const neighbour = resp[0].borders?.[0];
+      if (!neighbour) throw new Error('No neighbour found');
+
+      return getJSON(
+        `https://restcountries.com/v2/alpha/${neighbour}`,
+        'Country not found'
+      );
+    })
+    .then(resp => renderCountry(resp, 'neighbour'))
+    .catch(err => {
+      console.error(`${err} 😵`);
+    })
+    .finally((countriesContainer.style.opacity = 1));
+};
+
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    // navigator.geolocation.getCurrentPosition(
+    //   position => resolve(position),
+    //   error => reject(error)
+    // );
+    // We can simply do this:
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+getPosition()
+  .then(pos => console.log(pos))
+  .catch(err => console.error(err));
+
+btn.addEventListener('click', function () {
+  whereAmI();
 });
