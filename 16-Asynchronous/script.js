@@ -335,7 +335,7 @@ wait(1)
 Promise.resolve('abc').then(x => console.log(x));
 Promise.reject('abc').catch(x => console.error(x));
 
-*/
+
 
 // *********************** Geolocation API
 // navigator.geolocation.getCurrentPosition(
@@ -397,3 +397,46 @@ getPosition()
 btn.addEventListener('click', function () {
   whereAmI();
 });
+*/
+// *********************** Consuming promises with Async/Await
+
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+// Cfreate asynchronous function - keeps running in background when performing code inside
+// returns promise when finished
+const whereAmI = async function () {
+  try {
+    const pos = await getPosition();
+    const { latitude, longitude } = pos.coords;
+
+    const dataGeo = await getJSON(
+      `https://geocode.xyz/${latitude},${longitude}?geoit=json`,
+      'Geocode failed'
+    );
+
+    // with await it will wait until promise fulfilled
+    // it will stop inside async function and will not block  main execution
+    // no need to create callbacks or consuming promises
+    const res = await fetch(
+      `https://restcountries.com/v2/name/${dataGeo.country}`
+    );
+    console.log(res);
+    // equal to
+    // fetch(`https://restcountries.com/v2/name/${country}`).then(res => console.log(res))
+
+    const data = await res.json();
+    console.log(data);
+    renderCountry(data[0]);
+  } catch (err) {
+    console.error(`!!!!!!!!!!!! ${err}`);
+    renderError(`Something went wrong ${err.message}`);
+  } finally {
+    countriesContainer.style.opacity = 1;
+  }
+};
+whereAmI();
+console.log('FIRST');
