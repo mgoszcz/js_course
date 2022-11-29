@@ -397,7 +397,7 @@ getPosition()
 btn.addEventListener('click', function () {
   whereAmI();
 });
-*/
+
 // *********************** Consuming promises with Async/Await
 
 const getPosition = function () {
@@ -424,13 +424,12 @@ const whereAmI = async function () {
     const res = await fetch(
       `https://restcountries.com/v2/name/${dataGeo.country}`
     );
-    console.log(res);
     // equal to
     // fetch(`https://restcountries.com/v2/name/${country}`).then(res => console.log(res))
 
     const data = await res.json();
-    console.log(data);
     renderCountry(data[0]);
+    return `You are in ${dataGeo.city}, ${dataGeo.country}`;
   } catch (err) {
     console.error(`!!!!!!!!!!!! ${err}`);
     renderError(`Something went wrong ${err.message}`);
@@ -438,5 +437,156 @@ const whereAmI = async function () {
     countriesContainer.style.opacity = 1;
   }
 };
-whereAmI();
-console.log('FIRST');
+
+console.log('1: Will get location');
+const loc = whereAmI();
+// Here we have a promise, not a result!!!
+console.log(loc);
+console.log('2: finished get location');
+
+// *********************** Returning values from async functions
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+// Cfreate asynchronous function - keeps running in background when performing code inside
+// returns promise when finished
+const whereAmI = async function () {
+  try {
+    const pos = await getPosition();
+    const { latitude, longitude } = pos.coords;
+
+    const dataGeo = await getJSON(
+      `https://geocode.xyz/${latitude},${longitude}?geoit=json`,
+      'Geocode failed'
+    );
+
+    // with await it will wait until promise fulfilled
+    // it will stop inside async function and will not block  main execution
+    // no need to create callbacks or consuming promises
+    const res = await fetch(
+      `https://restcountries.com/v2/name/${dataGeo.country}`
+    );
+    // equal to
+    // fetch(`https://restcountries.com/v2/name/${country}`).then(res => console.log(res))
+
+    const data = await res.json();
+    renderCountry(data[0]);
+    // will be returned only if successfull
+    return `You are in ${dataGeo.city}, ${dataGeo.country}`;
+  } catch (err) {
+    console.error(`!!!!!!!!!!!! ${err}`);
+    renderError(`Something went wrong ${err.message}`);
+
+    // Reject promise returned from async function
+    throw err;
+  } finally {
+    countriesContainer.style.opacity = 1;
+  }
+};
+
+console.log('1: Will get location');
+// const loc = whereAmI();
+// // Here we have a promise, not a result!!!
+// console.log(loc);
+
+// Geting result from promise with then/catch/finally
+// whereAmI()
+//   .then(city => console.log(city))
+//   .catch(err => console.error(err.message))
+//   .finally(() => console.log('2: finished get location'));
+
+// Using await
+// await can be used only in async functions so for that we can use IIFE
+(async function () {
+  try {
+    const loc = await whereAmI();
+    console.log(loc);
+  } catch (err) {
+    console.error(err.message);
+  } finally {
+    console.log('2: finished get location');
+  }
+})();
+*/
+// *********************** Running promises in parallel
+const get3Countries = async function (c1, c2, c3) {
+  try {
+    // Does not make sense as we call ajax calls one after another but they are not dependent
+    // we should run them in parallel
+    // const [data1] = await getJSON(`https://restcountries.com/v2/name/${c1}`);
+    // const [data2] = await getJSON(`https://restcountries.com/v2/name/${c2}`);
+    // const [data3] = await getJSON(`https://restcountries.com/v2/name/${c3}`);
+    // console.log([data1.capital, data2.capital, data3.capital]);
+
+    // Run all in parallel, if one promise reject then whole Promise.all will reject
+    const data = await Promise.all([
+      getJSON(`https://restcountries.com/v2/name/${c1}`),
+      getJSON(`https://restcountries.com/v2/name/${c2}`),
+      getJSON(`https://restcountries.com/v2/name/${c3}`),
+    ]);
+    console.log(data.map(e => e[0].capital));
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+get3Countries('poland', 'canada', 'tanzania');
+
+// *********************** other promise combinators: race, allSettled, any
+
+// Promise.race
+// Promise returned by it will first settled of input promises
+
+(async function () {
+  const resp = await Promise.race([
+    getJSON(`https://restcountries.com/v2/name/italy`),
+    getJSON(`https://restcountries.com/v2/name/egypt`),
+    getJSON(`https://restcountries.com/v2/name/mexico`),
+  ]);
+  // here we will get first settled promise (also rejected promises)
+  console.log(resp);
+})();
+
+const timeout = function (sec) {
+  return new Promise(function (_, reject) {
+    setTimeout(function () {
+      reject(new Error('Request took too long'));
+    }, sec * 1000);
+  });
+};
+
+// We can abort long time taking operations with Promise.race
+Promise.race([
+  getJSON(`https://restcountries.com/v2/name/tanzania`),
+  timeout(5),
+])
+  .then(res => console.log(res[0]))
+  .catch(err => console.error(err));
+
+// Promise.allSettled
+// IT takes array of promises and returns array of all settled promises
+// will nto reject when one of promises rejected
+Promise.allSettled([
+  Promise.resolve('success'),
+  Promise.reject('error'),
+  Promise.resolve('another success'),
+]).then(res => console.log(res));
+
+// IT will raise an error as one of promises was rejected
+Promise.all([
+  Promise.resolve('success'),
+  Promise.reject('error'),
+  Promise.resolve('another success'),
+]).then(res => console.log(res));
+
+// Promise.any
+// takes an array of multiple promises and will return first fulfilled promise
+// it is similar to race but will not return rejected promise
+Promise.any([
+  Promise.resolve('success'),
+  Promise.reject('error'),
+  Promise.resolve('another success'),
+]).then(res => console.log(res));
