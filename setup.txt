@@ -1,0 +1,29 @@
+VS Code
+
+1. Install Prettier
+2. Set up prettier as Default formatter (Code>Preferences>Settings and serch for default formatter)
+3. Enable format on save
+4. create config file .prettierrc
+    {
+        "singleQuote": true,  // single quotes
+        "arrowParens": "avoid" // do not wrap single param in arrow functions in parenthesis
+    }
+5. Configure snippet for console.log
+    1. Preferences>User Snippets
+    2. New Global Snippets file
+    "Print to console": {
+		"scope": "javascript,typescript",
+		"prefix": "cl",
+		"body": [
+			"console.log('$1');"
+		],
+		"description": "Log output to console"
+	}
+
+
+Node JS
+1. Install Node JS
+2. Open terminal
+3. Verify node js installed by command 'node -v'
+4. install live-server by using command sudo npm install live-server -g
+5. use live-server for enabling live server
