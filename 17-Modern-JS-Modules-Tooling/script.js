@@ -71,3 +71,16 @@ const ShoppingCart2 = (function () {
 
 ShoppingCart2.addToCart('apple', 4);
 ShoppingCart2.addToCart('pizza', 2);
+
+// *************** CommonJS Modules
+
+// Below will work only in node.js!!!!
+
+//Export 
+// export.addToCart = function (product, quantity) {
+//     cart.push({ product, quantity });
+//     console.log(`${quantity} ${product} added to cart`);
+//   };
+
+// // Import
+// const { addToCart } = require('./shoppingCart.js')
