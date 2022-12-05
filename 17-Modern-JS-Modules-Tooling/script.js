@@ -76,7 +76,7 @@ ShoppingCart2.addToCart('pizza', 2);
 
 // Below will work only in node.js!!!!
 
-//Export 
+//Export
 // export.addToCart = function (product, quantity) {
 //     cart.push({ product, quantity });
 //     console.log(`${quantity} ${product} added to cart`);
@@ -84,3 +84,24 @@ ShoppingCart2.addToCart('pizza', 2);
 
 // // Import
 // const { addToCart } = require('./shoppingCart.js')
+
+// *************** NPM installer
+// install lodash by 'npm install lodash-es'
+
+import cloneDeep from './node_modules/lodash-es/cloneDeep.js';
+
+const state = {
+  cart: [
+    { product: 'bread', quantity: 5 },
+    { product: 'pizza', quantity: 5 },
+  ],
+  user: { loggedIn: true },
+};
+
+const stateDeepClone = cloneDeep(state);
+stateDeepClone.user.loggedIn = false;
+console.log(stateDeepClone);
+console.log(state);
+
+// When pushing to git do not push node_modules,
+// then you can use 'npm i' to install everything needed by using package.json
