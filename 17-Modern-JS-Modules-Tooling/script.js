@@ -108,7 +108,7 @@ console.log(state);
 // When pushing to git do not push node_modules,
 // then you can use 'npm i' to install everything needed by using package.json
 
-// it will maintain state of app on save
+// it will maintain state of app on save (parcel)
 if (module.hot) {
   module.hot.accept();
 }
