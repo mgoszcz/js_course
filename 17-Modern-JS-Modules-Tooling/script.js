@@ -39,8 +39,8 @@ const lastPost = getLastPost();
 console.log(lastPost);
 
 // we can use top level await to fix that
-const lastPost2 = await getLastPost();
-console.log(lastPost2);
+// const lastPost2 = await getLastPost();
+// console.log(lastPost2);
 
 // *************** Module pattern
 
@@ -88,7 +88,9 @@ ShoppingCart2.addToCart('pizza', 2);
 // *************** NPM installer
 // install lodash by 'npm install lodash-es'
 
-import cloneDeep from './node_modules/lodash-es/cloneDeep.js';
+// import cloneDeep from './node_modules/lodash-es/cloneDeep.js';
+// For using parcel, it can use any package so we can just use package name
+import cloneDeep from 'lodash-es';
 
 const state = {
   cart: [
@@ -105,3 +107,8 @@ console.log(state);
 
 // When pushing to git do not push node_modules,
 // then you can use 'npm i' to install everything needed by using package.json
+
+// it will maintain state of app on save
+if (module.hot) {
+  module.hot.accept();
+}

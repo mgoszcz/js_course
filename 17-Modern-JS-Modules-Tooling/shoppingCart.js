@@ -3,9 +3,9 @@ console.log('Exporting module');
 
 // Blocking code
 // top level await will stop whole execution (even other modules/scripts that imports it!!!)
-console.log('Start fetching users');
-await fetch('https://jsonplaceholder.typicode.com/users');
-console.log('Finish fetching');
+// console.log('Start fetching users');
+// await fetch('https://jsonplaceholder.typicode.com/users');
+// console.log('Finish fetching');
 
 const shippingCost = 10;
 export const cart = [];
