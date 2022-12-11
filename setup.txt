@@ -27,3 +27,13 @@ Node JS
 3. Verify node js installed by command 'node -v'
 4. install live-server by using command sudo npm install live-server -g
 5. use live-server for enabling live server
+
+Parcel
+1. npm init (to create package.json)
+2. Create 2 scripts inside package.json
+    "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+3. run server with 'npm run start'
+4. build with 'npm run build'
