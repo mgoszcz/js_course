@@ -30,9 +30,8 @@ const controlRecipes = async function () {
   }
 };
 
-// Recipe URL: http://localhost:1234/#5ed6604591c37cdc054bc886
-// Selecting recipe will change # in uRL, set up event when hash changes to load recipe
-// load recipe when loading page is done (to display hash)
-['load', 'hashchange'].forEach(ev =>
-  window.addEventListener(ev, controlRecipes)
-);
+const init = function () {
+  recipeView.addHandlerRender(controlRecipes);
+};
+
+init();
