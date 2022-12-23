@@ -37,3 +37,5 @@ Parcel
   },
 3. run server with 'npm run start'
 4. build with 'npm run build'
+
+to stop loading and debug in web browser, insert 'debugger' in line you want to stop

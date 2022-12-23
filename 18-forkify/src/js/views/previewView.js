@@ -2,6 +2,8 @@ import View from './View';
 
 import icons from 'url:../../img/icons.svg';
 
+// child class for resultsView and bookmarksView that will implement generating markup for preview class
+
 class PreviewView extends View {
   _parentElement = '';
 
